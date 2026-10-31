@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>SpendWise</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href=""{{ url_for('static', filename='style.css') }}>
+</head>    
+<body>
+    <div class="app">
+        <header class="hero">
+            <p class="hello">{{ month }}</p>
+            <h1>Your balance</h1
+            <div class="balance">{{ currency }}{{ "{:,.2f}".format(balance) }}</div>
+            <div class="stats">
+                <div class="stat">
+                    <span class="arrow">↑</span>
+                    </div><small>Income</small><b>{{ currency }}{{ "{:,.2f}".format(spent) }}</b><div>     
+                </div>
+                </div class="stat">
+                    <span class="arrow">↓</span>
+                    </div><small>Spent</small><b>{{ currency }}{{ "{:,.2f}".format(spent) }}</b></div>
+                </div>
+            </div>
+        </header>
+
+        <main>
+            <div class="card">
+                <h2>Recent activity</h2>
+                <ul class="list">
+                    {% for t in transactions %}
+                    {% set c = categories[t.category] %}
+                    <li class="row" style="animation-delay: {{ loop.index0 * 0.06 }}s">
+                        <span class="icon" style="background: {{ c.color }}22">{{ c.emoji }}</span>
+                        <div class="info">
+                            <b>{{ t.title }}</b>
+                            <small>{{ c.label }} . {{ t.date }}</small>
+                        </div>
+                        <span class="amt {{ t.type }}">{{ '+' if t.type == 'income' else '-' }}{{ currency }}{{ "%.2f"|format(t.amount) }}</span>
+                    </li>
+                    {% endfor %}
+                </ul>
+            </div>
+        </main>
+    </div>
+</body>
+</html>
