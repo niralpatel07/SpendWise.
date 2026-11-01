@@ -52,8 +52,34 @@
         <button type="submit">Add</button>
       </form>
 
+      <form class="card filters" method="get" action="{{ url_for('home') }}">
+        <input type="hidden" name="cat" value="{{ f_cat }}">
+        <div class="searchrow">
+          <input type="search" name="q" value="{{ q }}" placeholder="🔍 Search transactions">
+          <select name="month" onchange="this.form.submit()">
+            <option value="all" {% if f_month == 'all' %}selected{% endif %}>All months</option>
+            {% for m in months %}
+            <option value="{{ m.key }}" {% if m.key == f_month %}selected{% endif %}>{{ m.label }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="chips">
+          <a class="chip {{ 'on' if f_cat == 'all' else '' }}" href="{{ url_for('home', month=f_month, cat='all', q=q or None) }}">All</a>
+          {% for key, c in categories.items() %}
+          <a class="chip {{ 'on' if f_cat == key else '' }}" href="{{ url_for('home', month=f_month, cat=key, q=q or None) }}">{{ c.emoji }} {{ c.label }}</a>
+          {% endfor %}
+        </div>
+        {% if filtered %}
+        <a class="clear" href="{{ url_for('home') }}">Clear filters</a>
+        {% endif %}
+      </form>
+
       <div class="card">
         <h2>Recent activity</h2>
+        <p class="summary">
+          {{ transactions|length }} result{{ '' if transactions|length == 1 else 's' }}
+          · Spent {{ currency }}{{ "{:,.2f}".format(shown_spent) }}
+        </p>
         <ul class="list">
           {% for t in transactions %}
           {% set c = categories[t.category] %}
@@ -72,7 +98,9 @@
             </div>
           </li>
           {% else %}
-          <li class="empty">No transactions yet. Add your first one above! ✨</li>
+          <li class="empty">
+            {% if filtered %}No matches. Try clearing a filter 🔍{% else %}No transactions yet. Add your first one above! ✨{% endif %}
+          </li>
           {% endfor %}
         </ul>
       </div>

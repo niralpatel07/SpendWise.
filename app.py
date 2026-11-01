@@ -57,6 +57,15 @@ def find(tid):
             return t
     return None
 
+def month_options():
+    keys = sorted({t["date"][:7] for t in transactions}, reverse=True)
+    result = []
+    for key in keys:
+        year, month = key.split("-")
+        label = date(int(year), int(month), 1).strftime("%B %Y")
+        result.append({"key": key, "label": label})
+    return result
+
 def read_form(): 
     title = request.form.get("title", "").strip()
     try:
@@ -75,10 +84,25 @@ def read_form():
 @app.route("/")
 def home():
     income, spent, balance = totals(transactions)
-    recent = sorted(transactions, key = lambda t: (t["date"], t["id"]), reverse=True)
+
+    f_month = request.args.get("month", "all")
+    f_cat = request.args.get("cat", "all")
+    q = request.args.get("q", "").strip()
+
+    shown = sorted(transactions, key=lambda t: (t["date"], t["id"]), reverse=True)
+    if f_month != "all":
+        shown = [t for t in shown if t["date"].startswith(f_month)]
+    if f_cat != "all":
+        shown = [t for t in shown if t["category"] == f_cat]
+    if q:
+        shown = [t for t in shown if q.lower() in t["title"].lower()]
+
+    shown_income, shown_spent, shown_net = totals(shown)
+    filtered = f_month != "all" or f_cat != "all" or bool(q)
+
     return render_template( 
         "index.html",
-        transactions=recent,
+        transactions=shown,
         categories=CATEROGIES,
         expense_cats=EXPENSE_CATS,
         currency=CURRENCY,
@@ -88,7 +112,15 @@ def home():
         month=date.today().strftime("%B %Y"),
         today=date.today().isoformat(),
         toast=MESSAGES.get(request.args.get("msg")),
+        months=month_options(),
+        f_month=f_month,
+        f_cat=f_cat,
+        q=q,
+        filtered=filtered,
+        shown_spent=shown_spent,
+        shown_income=shown_income,
     ) 
+
 
 @app.route("/add", methods=["POST"])
 def add():
