@@ -1,91 +1,146 @@
-:root { 
-    --bg: #f4f5fb;
-    --card: #ffffff;
-    --text: #1e1b3a;
-    --muted: #7b7a95;
-    --line: #eeeef6;
-    --brand1: #6d5dfc;
-    --brand2: #b25cff;
-    --green: #16a34a;
-    --red: #ef4444
-    --shadow: 0 8px 24px rgba(40, 30, 120, 0.08);
+:root {
+  --bg: #f4f5fb;
+  --card: #ffffff;
+  --text: #1e1b3a;
+  --muted: #7b7a95;
+  --line: #eeeef6;
+  --brand1: #6d5dfc;
+  --brand2: #b25cff;
+  --green: #16a34a;
+  --red: #ef4444;
+  --shadow: 0 8px 24px rgba(40, 30, 120, 0.08);
 }
 
 * { box-sizing: border-box; margin: 0; padding: 0; }
 
 body {
-    font-family: 'Inter', system-ui, sans-serif;
-    background: var(--bg);
-    color: var(--text);
-    min-height: 100vh;
+  font-family: 'Inter', system-ui, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
 }
 
 .app { max-width: 720px; margin: 0 auto; padding-bottom: 60px; }
 
-.hero { 
-    background: linear-gradient(135deg, var(--brand1), var(--brand2));
-    color: #fff,
-    padding: 36px 24px 80px;
-    border-radius: 0 0 32px 32px;
+.hero {
+  background: linear-gradient(135deg, var(--brand1), var(--brand2));
+  color: #fff;
+  padding: 36px 24px 80px;
+  border-radius: 0 0 32px 32px;
 }
 .hello { opacity: 0.8; font-size: 14px; }
 .hero h1 { font-size: 16px; font-weight: 600; margin-top: 18px; opacity: 0.9; }
 .balance { font-size: 48px; font-weight: 800; letter-spacing: -1px; margin: 4px 0 22px; }
 
 .stats { display: flex; gap: 12px; }
-.stat { 
-    flex: 1;
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    background: rgba(255, 255, 255, 0.18);
-    backdrop-filter: blur(8px);
-    border-radius: 16px;
-    padding: 14px;
+.stat {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: rgba(255, 255, 255, 0.18);
+  backdrop-filter: blur(8px);
+  border-radius: 16px;
+  padding: 14px;
 }
 .stat small { display: block; opacity: 0.85; font-size: 12px; }
 .stat b { font-size: 18px; }
 .arrow {
-    width: 34px; height: 34px;
-    border-radius: 50%;
-    display: grid; place-items: center;
-    background: rgba(255, 255, 255, 0.25);
-    font-weight: 800;
+  width: 34px; height: 34px;
+  border-radius: 50%;
+  display: grid; place-items: center;
+  background: rgba(255, 255, 255, 0.25);
+  font-weight: 800;
 }
 
 main { padding: 0 20px; margin-top: -44px; }
-.card { 
-    background: var(--card);
-    border-radius: 22px;
-    padding: 20px;
-    box-shadow: var(--shadow);
+.card {
+  background: var(--card);
+  border-radius: 22px;
+  padding: 20px;
+  box-shadow: var(--shadow);
 }
 .card h2 { font-size: 18px; margin-bottom: 8px; }
 
 .list { list-style: none; }
 .row {
-    display: flex;
-    align-items: center;
-    gap: 14px;
-    padding: 12px 0;
-    border-bottom: 1px solid var(--line);
-    animation: rise 0.5s ease both;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 12px 0;
+  border-bottom: 1px solid var(--line);
+  animation: rise 0.5s ease both;
 }
 .row:last-child { border-bottom: none; }
 .icon {
-    width: 46px; height: 46px;
-    border-radius: 14px;
-    display: grid; place-items: center;
-    font-size: 22px;
+  width: 46px; height: 46px;
+  border-radius: 14px;
+  display: grid; place-items: center;
+  font-size: 22px;
 }
 .info { flex: 1; }
 .info b { display: block; font-size: 15px; }
-.info small { color: var(--muted); font-size; 12px; }
+.info small { color: var(--muted); font-size: 12px; }
 .amt { font-weight: 700; }
 .amt.income { color: var(--green); }
 .amt.expense { color: var(--red); }
 
 @keyframes rise {
-    from { opacity: 0; transform: translateY(10px); }
-    to { opacity: 1; transform: none; }
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: none; }
 }
+
+main .card + .card { margin-top: 18px; }
+.add h2 { margin-bottom: 12px; }
+.add input, .add select {
+  width: 100%;
+  padding: 14px;
+  border: 2px solid var(--line);
+  border-radius: 14px;
+  font: inherit;
+  font-size: 16px;
+  background: var(--bg);
+  color: var(--text);
+  margin-bottom: 10px;
+}
+.add input.focus, .add select:focus { outline: none; border-color: var(--brand1); }
+.two { display: flex; gap: 10px; }
+.two input { flex: 1; min-width: 0; }
+
+.toggle { 
+  display: flex;
+  background: var(--bg);
+  border-radius: 14px;
+  padding: 4px;
+  margin-bottom: 12px;
+}
+.toggle label { flex: 1; }
+.toggle input { display: none; }
+.toggle span {
+  display: block;
+  text-align: center;
+  padding: 10px;
+  border-radius: 11px;
+  font-weight: 600;
+  color: var(--muted);
+  cursor: pointer;
+}
+.toggle input:checked + span {
+  background: linear-gradient(135deg, var(--brand1), var(--brand2));
+  color: #fff;
+}
+
+.add button {
+  width: 100%;
+  padding: 14px;
+  border: none;
+  border-radius: 14px;
+  font: inherit;
+  font-weight: 700;
+  font-size: 16px;
+  color: #fff;
+  background: linear-gradient(135deg, var(--brand1), var(--brand2));
+  cursor: pointer;
+}
+.add button:active { transform: scale(0.98); }
+.empty { padding: 18px 0; color: var(--muted); text-align: center; }
