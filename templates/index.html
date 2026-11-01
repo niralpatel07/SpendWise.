@@ -9,11 +9,15 @@
   <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
 <body>
+  {% if toast %}
+  <div class="toast">{{ toast }}</div>
+  {% endif %}
+
   <div class="app">
     <header class="hero">
       <p class="hello">{{ month }}</p>
       <h1>Your balance</h1>
-      <div class="balance">{{ currency }}{{ "{:,.2f}".format(balance) }}</div>
+      <div class="balance" id="balance" data-value="{{ balance }}" data-currency="{{ currency }}">{{ currency }}{{ "{:,.2f}".format(balance) }}</div>
       <div class="stats">
         <div class="stat">
           <span class="arrow">↑</span>
@@ -60,6 +64,12 @@
               <small>{{ c.label }} · {{ t.date }}</small>
             </div>
             <span class="amt {{ t.type }}">{{ '+' if t.type == 'income' else '-' }}{{ currency }}{{ "%.2f"|format(t.amount) }}</span>
+            <div class="actions">
+              <a class="act" href="{{ url_for('edit', tid=t.id) }}" title="Edit">✏️</a>
+              <form action="{{ url_for('delete', tid=t.id) }}" method="post" onsubmit="return confirm('Delete this transaction?')">
+                <button class="act" type="submit" title="Delete">🗑️</button>
+              </form>
+            </div>
           </li>
           {% else %}
           <li class="empty">No transactions yet. Add your first one above! ✨</li>
@@ -77,6 +87,20 @@
     }
     document.querySelectorAll('input[name="type"]').forEach(r => r.addEventListener('change', sync));
     sync();
+
+    const bal = document.getElementById('balance');
+    const target = parseFloat(bal.dataset.value);
+    const cur = bal.dataset.currency;
+    const startTime = performance.now();
+    function tick(now) {
+      const p = Math.min((now - startTime) / 800, 1);
+      const eased = 1 - Math.pow(1 - p, 3);
+      const val = target * eased;
+      const text = Math.abs(val).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+      bal.textContent = (val < 0 ? '-' : '') + cur + text;
+      if (p < 1) requestAnimationFrame(tick);
+    }
+    requestAnimationFrame(tick);
   </script>
 </body>
 </html>

@@ -18,6 +18,12 @@ CATEROGIES = {
 }
 EXPENSE_CATS = [key for key in CATEROGIES if key != "income"]
 
+MESSAGES = {
+    "added": "Transaction added successfully!✅",
+    "saved": "Changes saved ☑️",
+    "deleted": "Deleted 🗑",
+}
+
 DEFAULT_TRANSACTIONS = [
     {"id": 1, "title": "Paycheck",    "amount": 220.00, "type": "income",  "category": "income",     "date": "2026-10-30"},
     {"id": 2, "title": "Groceries",   "amount": 42.50,  "type": "expense", "category": "food",       "date": "2026-10-31"},
@@ -45,6 +51,27 @@ def totals(items):
     spent = sum(t["amount"] for t in items if t["type"] == "expense")
     return income, spent, income - spent
 
+def find(tid):
+    for t in transactions:
+        if t["id"] == tid:
+            return t
+    return None
+
+def read_form(): 
+    title = request.form.get("title", "").strip()
+    try:
+        amount = round(float(request.form.get("amount", 0)), 2)
+    except ValueError:
+        amount = 0 
+    kind = "income" if request.form.get("type") == "income" else "expense"
+    category = "income" if kind == "income" else request.form.get("category", "food")
+    when = request.form.get("date") or date.today().isoformat()
+
+    if title and amount > 0 and category in CATEROGIES:
+        return {"title": title, "amount": amount, "type": kind,
+                "category": category, "date": when}
+    return None
+
 @app.route("/")
 def home():
     income, spent, balance = totals(transactions)
@@ -60,37 +87,45 @@ def home():
         balance=balance,
         month=date.today().strftime("%B %Y"),
         today=date.today().isoformat(),
+        toast=MESSAGES.get(request.args.get("msg")),
     ) 
 
 @app.route("/add", methods=["POST"])
 def add():
     global next_id
-    title = request.form.get("title", "").strip()
-    try:
-        amount = round(float(request.form.get("amount", 0)), 2)
-    except ValueError:
-        amount = 0 
-    kind = request.form.get("type", "expense")
-    category = request.form.get("category", "food")
-    when = request.form.get("date") or date.today().isoformat()
-
-    if kind == "income":
-        category = "income"
-    else:
-        kind = "expense"
-
-    if title and amount > 0 and category in CATEROGIES:
-        transactions.append({
-            "id": next_id,
-            "title": title,
-            "amount": amount,
-            "type": kind,
-            "category": category,
-            "date": when,
-        })
+    data = read_form()
+    if data:
+        data["id"] = next_id
         next_id += 1
+        transactions.append(data)
         save_data()
-    return redirect(url_for("home"))
+        return redirect(url_for("home", msg="added"))
+    return redirect(url_for("home", msg="invalid"))
 
+@app.route("/edit/<int:tid>", methods=["GET", "POST"])
+def edit(tid):
+    t = find(tid)
+    if t is None:
+        return redirect(url_for("home"))
+    if request.method == "POST":
+        data = read_form()
+        if data:
+            t.update(data)
+            save_data()
+            return redirect(url_for("home", msg="saved"))
+    return render_template(
+        "edit.html",
+        t=t,
+        categories=CATEROGIES,
+        expense_cats=EXPENSE_CATS,
+    )
+
+@app.route("/delete/<int:tid>", methods=["POST"])
+def delete(tid):
+    global transactions
+    transactions = [t for t in transactions if t["id"] != tid]
+    save_data()
+    return redirect(url_for("home", msg="deleted"))
+    
 if __name__ == "__main__":
     app.run(debug=True)

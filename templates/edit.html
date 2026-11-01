@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Edit · SpendWise</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+  <div class="app">
+    <header class="hero small">
+      <a class="back" href="{{ url_for('home') }}">← Back</a>
+      <h1>Edit transaction</h1>
+    </header>
+
+    <main>
+      <form class="card add" action="{{ url_for('edit', tid=t.id) }}" method="post">
+        <div class="toggle">
+          <label><input type="radio" name="type" value="expense" {% if t.type == 'expense' %}checked{% endif %}><span>Expense</span></label>
+          <label><input type="radio" name="type" value="income" {% if t.type == 'income' %}checked{% endif %}><span>Income</span></label>
+        </div>
+        <input type="text" name="title" value="{{ t.title }}" required maxlength="40">
+        <div class="two">
+          <input type="number" name="amount" value="{{ '%.2f'|format(t.amount) }}" step="0.01" min="0.01" required inputmode="decimal">
+          <input type="date" name="date" value="{{ t.date }}">
+        </div>
+        <div id="cat-wrap">
+          <select name="category">
+            {% for key in expense_cats %}
+            <option value="{{ key }}" {% if key == t.category %}selected{% endif %}>{{ categories[key].emoji }} {{ categories[key].label }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <button type="submit">Save changes</button>
+        <a class="cancel" href="{{ url_for('home') }}">Cancel</a>
+      </form>
+    </main>
+  </div>
+
+  <script>
+    const catWrap = document.getElementById('cat-wrap');
+    function sync() {
+      const kind = document.querySelector('input[name="type"]:checked').value;
+      catWrap.style.display = kind === 'income' ? 'none' : 'block';
+    }
+    document.querySelectorAll('input[name="type"]').forEach(r => r.addEventListener('change', sync));
+    sync();
+  </script>
+</body>
+</html>
