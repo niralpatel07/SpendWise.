@@ -242,3 +242,73 @@ main .card + .card { margin-top: 18px; }
   font-size: 14px;
 }
 .summary { color: var(--muted); font-size: 13px; margin-bottom: 4px; }
+
+.chart-wrap {
+  position: relative;
+  max-width: 260px;
+  margin: 8px auto 16px;
+}
+.chart-center {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+}
+.chart-center small { color: var(--muted); font-size: 12px; }
+.chart-center b { font-size: 22px; }
+
+.legend { list-style: none; }
+.legend li {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--line);
+  font-weight: 600;
+}
+.legend li:last-child { border-bottom: none; }
+.legend b { margin-left: auto; }
+.dot { width: 12px; height: 12px; border-radius: 50%; flex-shrink: 0; }
+
+.bar-track {
+  height: 14px;
+  background: var(--bg);
+  border-radius: 999px;
+  overflow: hidden;
+  margin: 6px 0 10px;
+}
+.bar-fill{
+  height: 100%;
+  border-radius: 999px;
+  background: linear-gradient(90deg, var(--brand1), var(--brand2));
+  animation: fill 1s ease both;
+}
+.bar-fill.over { background: linear-gradient(90devg, #f97316, var(--red));}
+@keyframes fill { from { width: 0;}}
+.budgewt-text { color: var(--muted); font-size: 14px; margin-bottom: 14px; }
+.over-text { color: var(--red); }
+.budget-form { display: flex; gap: 10px;}
+.budget-form input {
+  flex: 1;
+  min-width: 0;
+  padding: 12px 14px;
+  border: 2px solid var(--line);
+  border-radius: 14px;
+  font: inherit;
+  font-size: 16px;
+  background: var(--bg);
+  color: var(--text);
+}
+.budget-form button {
+  padding: 0px 22px;
+  border: none;
+  border-radius: 14px;
+  font: inherit;
+  font-weight: 700;
+  color: #fff;
+  background: linear-gradient(135deg, var(--brand1), var(--brand2));
+  cursor: pointer;
+}

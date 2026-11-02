@@ -1,12 +1,13 @@
 import json
 import os
 from datetime import date
-from flask import Flask, render_template, request, redirect, url_for
+from flask import Flask, render_template, request, redirect, url_for, Response
 
 app = Flask(__name__)
 
 CURRENCY = "$"
 DATA_FILE = os.path.join(os.path.dirname(os.path.abspath(__file__)), "data.json")
+BUDGET_FILE = os.path.join(os.path.dirname(os.path.abspath(__file__)), "budget.json")
 
 CATEROGIES = {
     "food":       {"label":  "Food",      "emoji":  "🍔", "color": "#f97316"},
@@ -22,6 +23,7 @@ MESSAGES = {
     "added": "Transaction added successfully!✅",
     "saved": "Changes saved ☑️",
     "deleted": "Deleted 🗑",
+    "budget": "Budget updated 💰",
 }
 
 DEFAULT_TRANSACTIONS = [
@@ -57,6 +59,16 @@ def find(tid):
             return t
     return None
 
+def load_budget():
+    try:
+        with open(BUDGET_FILE, "r") as f:
+            return float(json.load(f)["budget"])
+    except (FileNotFoundError, json.JSONDecodeError, KeyError, ValueError):
+        return 200.0
+
+def save_budget(value):
+    with open(BUDGET_FILE, "w") as f:
+        json.dump({"budget": value}, f)
 def month_options():
     keys = sorted({t["date"][:7] for t in transactions}, reverse=True)
     result = []
@@ -83,11 +95,49 @@ def read_form():
 
 @app.route("/")
 def home():
-    income, spent, balance = totals(transactions)
 
     f_month = request.args.get("month", "all")
     f_cat = request.args.get("cat", "all")
     q = request.args.get("q", "").strip()
+    by_cat = {}
+    for t in transactions:
+        if t["type"] == "expense" and (f_month == "all" or t["date"].startswith(f_month)):
+            by_cat[t["category"]] = by_cat.get(t["category"], 0) + t["amount"]
+    chart_data = [
+        {
+            "label": CATEROGIES[k]["label"],
+            "emoji": CATEROGIES[k]["emoji"],
+            "color": CATEROGIES[k]["color"],
+            "amount": round(v, 2),
+        }
+        for k, v in sorted(by_cat.items(), key=lambda kv: kv[1], reverse=True)
+    ]
+    chart_total = round(sum(d["amount"] for d in chart_data), 2)
+    months_sorted = sorted({t["date"][:7] for t in transactions})[-6:]
+    bar_labels,bar_income, bar_spent = [], [], []
+    for key in months_sorted:
+        yy, mm = key.split("-")
+        bar_labels.append(date(int(yy), int(mm), 1).strftime("%b"))
+        inc,sp, _ = totals([t for t in transactions if t["date"].startswith(key)])
+        bar_income.append(round(inc, 2))
+        bar_spent.append(round(sp, 2))
+
+    b_key = f_month if f_month != "all" else date.today().strftime("%Y-%m")
+    b_year, b_mon = b_key.split("-")
+    b_label = date(int(b_year), int(b_mon), 1).strftime("%B")
+    b_spent = totals([t for t in transactions if t["date"].startswith(b_key)])[1]
+    budget = load_budget()
+    budget_pct = min(round(b_spent / budget * 100), 100)
+    budget_over = b_spent > budget
+
+    in_month = [t for t in transactions if f_month == "all" or t["date"].startswith(f_month)]
+    income, spent, balance = totals(in_month)
+    if f_month == "all":
+        hero_label = "All time"
+    else:
+        y, m = f_month.split("-")
+        hero_label = date(int(y), int(m), 1).strftime("%B %Y")
+
 
     shown = sorted(transactions, key=lambda t: (t["date"], t["id"]), reverse=True)
     if f_month != "all":
@@ -110,12 +160,23 @@ def home():
         spent=spent,
         balance=balance,
         month=date.today().strftime("%B %Y"),
+        hero_label=hero_label,
         today=date.today().isoformat(),
         toast=MESSAGES.get(request.args.get("msg")),
         months=month_options(),
         f_month=f_month,
         f_cat=f_cat,
         q=q,
+        chart_data=chart_data,
+        chart_total=chart_total,
+        bar_labels=bar_labels,
+        bar_income=bar_income,
+        bar_spent=bar_spent,
+        b_label=b_label,
+        b_spent=b_spent,
+        budget=budget,
+        budget_pct=budget_pct,
+        budget_over=budget_over,
         filtered=filtered,
         shown_spent=shown_spent,
         shown_income=shown_income,
@@ -159,5 +220,16 @@ def delete(tid):
     save_data()
     return redirect(url_for("home", msg="deleted"))
     
+@app.route("/budget", methods=["POST"])
+def set_budget():
+    try:
+        value = round(float(request.form.get("budget", 0)), 2)
+    except ValueError:
+        value = 0
+    if value > 0:
+        save_budget(value)
+        return redirect(url_for("home", msg="budget"))
+    return redirect(url_for("home"))
+
 if __name__ == "__main__":
     app.run(debug=True)
