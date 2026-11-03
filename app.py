@@ -1,3 +1,5 @@
+import csv
+import io
 import json
 import os
 from datetime import date
@@ -8,6 +10,8 @@ app = Flask(__name__)
 CURRENCY = "$"
 DATA_FILE = os.path.join(os.path.dirname(os.path.abspath(__file__)), "data.json")
 BUDGET_FILE = os.path.join(os.path.dirname(os.path.abspath(__file__)), "budget.json")
+
+LIMITS_FILE = os.path.join(os.path.dirname(os.path.abspath(__file__)), "limits.json")
 
 CATEROGIES = {
     "food":       {"label":  "Food",      "emoji":  "🍔", "color": "#f97316"},
@@ -24,6 +28,7 @@ MESSAGES = {
     "saved": "Changes saved ☑️",
     "deleted": "Deleted 🗑",
     "budget": "Budget updated 💰",
+    "limits": "Category limits saved 🚨",
 }
 
 DEFAULT_TRANSACTIONS = [
@@ -78,6 +83,18 @@ def month_options():
         result.append({"key": key, "label": label})
     return result
 
+def load_limits():
+    try:
+        with open(LIMITS_FILE, "r") as f:
+            data = json.load(f)
+        return data if isinstance(data, dict) else {}
+    except (FileNotFoundError, json.JSONDecodeError):
+        return {}
+
+def save_limits(limits):
+    with open(LIMITS_FILE, "w") as f:
+        json.dump(limits, f)
+
 def read_form(): 
     title = request.form.get("title", "").strip()
     try:
@@ -129,7 +146,22 @@ def home():
     budget = load_budget()
     budget_pct = min(round(b_spent / budget * 100), 100)
     budget_over = b_spent > budget
-
+    limits = load_limits()
+    limit_rows = []
+    for key in EXPENSE_CATS:
+        lim = limits.get(key)
+        if lim:
+            sp = sum(t["amount"] for t in transactions
+                    if t["type"] == "expense" and t["category"] == key and t["date"].startswith(b_key))
+            limit_rows.append({
+                "label": CATEROGIES[key]["label"],
+                "emoji": CATEROGIES[key]["emoji"],
+                "spent": round(sp, 2),
+                "limit": lim,
+                "pct": min(round(sp / lim * 100), 100),                    
+                "over": sp > lim,
+            })
+                    
     in_month = [t for t in transactions if f_month == "all" or t["date"].startswith(f_month)]
     income, spent, balance = totals(in_month)
     if f_month == "all":
@@ -177,6 +209,8 @@ def home():
         budget=budget,
         budget_pct=budget_pct,
         budget_over=budget_over,
+        limits=limits,
+        limit_rows=limit_rows,
         filtered=filtered,
         shown_spent=shown_spent,
         shown_income=shown_income,
@@ -230,6 +264,35 @@ def set_budget():
         save_budget(value)
         return redirect(url_for("home", msg="budget"))
     return redirect(url_for("home"))
+
+@app.route("/limits", methods=["POST"])
+def set_limits():
+    limits = {}
+    for key in EXPENSE_CATS:
+        try:
+            value = round(float(request.form.get(key, "")), 2)
+        except ValueError:
+            continue
+        if value > 0:
+            limits[key] = value
+    save_limits(limits)
+    return redirect(url_for("home", msg="limits"))
+
+@app.route("/export.csv")
+def export_csv():
+    out = io.StringIO()
+    writer = csv.writer(out)
+    writer.writerow(["Date", "Title", "Category", "Type", "Amount"])
+    for t in sorted(transactions, key=lambda t: (t["date"], t["id"])):
+        title = t["title"]
+        if title.startswith(("=", "+", "-", "@")):
+            title = "'" + title
+        writer.writerow([t["date"], title, CATEROGIES[t["category"]]["label"], t["type"], "%.2f" % t["amount"]])
+    return Response(
+        out.getvalue(),
+        mimetype="text/csv",
+        headers={"Content-Disposition": "attachment; filename=export.csv"}
+    )
 
 if __name__ == "__main__":
     app.run(debug=True)

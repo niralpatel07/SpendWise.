@@ -72,11 +72,32 @@
           <input type="number" name="budget" placeholder="New monthly budget" step="1" min="1" inputmode="decimal" required>
           <button type="submit">Set</button>
         </form>   
-      </div>
-
-      <div class="card">
-        <h2>Income vs spent</h2>
-        <canvas id="monthChart" height="200"></canvas>
+        {% if limit_rows %}
+        <div class="limits">
+          {% for r in limit_rows %}
+          <div class="limit-row">
+            <div class="limit-head">
+              <span>{{ r.emoji }} {{ r.label }}</span>
+              <small class="{{ 'over-text' if r.over else '' }}">{{ currency }}{{ "%.2f"|format(r.spent) }} / {{ currency }}{{ "%.0f"|format(r.limit) }}</small>
+            </div>
+            <div class="bar-track slim">
+              <div class="bar-fill {{ 'over' if r.over else '' }}" style="width: {{ r.pct }}%"></div></div>
+          </div>
+          {% endfor %}
+        </div>
+        {% endif %}
+        <details class="limit-edit">
+          <summary>🎯 Set category limits</summary>
+          <form action="{{ url_for('set_limits') }}" method="post">
+            {% for key in expense_cats %}
+            <label class="limit-input">
+              <span>{{ categories[key].emoji }} {{ categories[key].label }}</span>
+              <input type="number" name="{{ key }}" value="{{ limits.get(key) }}" placeholder="No limit" step="1" min="1" inputmode="decimal">
+            </label>
+            {% endfor %}
+            <button type="submit">Save limits</button>
+          </form>
+        </details>
       </div>
 
       <form class="card add" action="{{ url_for('add') }}" method="post">
@@ -128,6 +149,7 @@
           {{ transactions|length }} result{{ '' if transactions|length == 1 else 's' }}
           · Spent {{ currency }}{{ "{:,.2f}".format(shown_spent) }}
         </p>
+        <a class="export" href="{{ url_for('export_csv') }}">⬇️ Export CSV</a>
         <ul class="list">
           {% for t in transactions %}
           {% set c = categories[t.category] %}
