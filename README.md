@@ -1,34 +1,53 @@
 # SpendWise.
 
-# SpendWise
-
 This website was built using Python and Flask. You can log in your income and expenses and view where you're spending your money, what you have left of your monthly budget as well as if any of your categories are over the limit.
 
-Live demo: [Paste your PythonAnywhere link here]
+Demo link: [https://niralpatel.pythonanywhere.com/?msg=budget]
 
 I created this as part of my first week project for Hack Club Terra.
 
 ## Why I created this
 I wanted an easier way to track my money rather than using a spreadsheet. I also wanted to play around with charts.
-## Features
 
-Add income and expenses with a title, value, date and category.
-Edit or delete any transaction.
-Search by title, filter by category and change month.
-The balance, income and spend cards update based on the chosen month.
-See a doughnut chart showing what you've spent in each category. This includes a colour legend.
-View your monthly budget with a bar that fills up. If you go over you'll see it turn red.
-You can set optional limits on your categories (e.g. Food = $30). Each category will have its own bar.
-Export data into a CSV file.
-Data is stored in JSON files so it doesn't get lost when restarting.
+## Features and How to use
+Adding transactions
+
+1. Click on the 'Add Transaction' card. Select either 'Expense' or 'Income'.
+2. Enter the details of your transaction including its name, value and date (defaults to today).
+3. If it is an expense category, select a category. No categories are needed for income.
+4. Press 'Add'. A prompt will appear and the balance and charts will also be updated.
+Editing/deletions
+
+Press ✏️ to edit any row. After editing press 'Save changes'.
+To delete, press 🗑️ and it will ask to confirm.
+Searching
+
+Search for a transaction using the search bar.
+Clicking on any category chip (🍔 Food, 🚌 Transport etc) will filter to just that category. To view all swipe left/right on the row.
+Clicking on the month drop down will allow you to view just one month. This will also change the balance, income and spent cards.
+Clicking 'Clear Filters' will return you to all.
+
+Understanding Charts
+The pie chart will show you how much you have spent in each category. The total can be seen in the centre.
+Hover/tap on any slice to highlight it. Use the legend at the bottom to see precise values.
+Setting Budgets
+
+Type in the amount you want your budget to be for the month in the budget card and click 'Set'.
+The bar will fill up as you spend. If you go over it will turn red with 'Over by...'.
+
+Setting Category Limits
+Click on 🎯 Set category limits.
+Enter in a limit for any category. Leave the rest blank. Click 'Save limits'.
+Each category will have its own little bar. This will show your limit for the month displayed in the budget card. Click on the drop down to change the month.
+
+Exporting Data
+Click on ⬇️ Export CSV to download all of your transactions.
+
 ## Code breakdown
-
 `app.py` contains the routes, filtering, data for the chart and saving.
 `templates/index.html` is the main page. `templates/edit.html` is the edit page.
 `static/style.css` has all of the styling.
 `data.json`, `budget.json` and `limits.json` are automatically created when using this.
-## Technologies used
-
 This was built using Python, Flask, Jinja, HTML, CSS and JavaScript. Chart.js was used for the chart. The website is hosted on PythonAnywhere.
 
 ## Things to know
@@ -44,9 +63,6 @@ How to create a downloadable file in Flask.
 How to read a traceback from the bottom up. Most of my bugs were small errors. For example, if I had a replace all function and replaced 'categories' with 'CATEGORIES' it broke my templates.
 
 It took a few attempts to deploy. When I deployed FocusList for the first time on Vercel, it didn't work as it can't save files. So I decided to use PythonAnywhere from the start.
-
-## How I built this
-I coded this using my iPad. I used Claude (AI assistant) as my teacher to help me code. I also used it to help me write and debug my code. I tested, fixed and deployed it myself.
 
 ## What I would improve
 Dark mode
